@@ -1,0 +1,36 @@
+% main.m
+clear;
+clc;
+
+DEM_path = './assets/dem_lushan.tif';
+drainage_basins_num = 10;
+min_area = 20000;
+% 
+% ra = RiverAnalysis(DEM_path, min_area);
+% ra = ra.drainage_basins(drainage_basins_num);
+% ra = ra.slope_area();
+% ra = ra.chi_plot(ra.theta);
+
+DEM = GRIDobj('srtm_bigtujunga30m_utm11.tif');
+FD = FLOWobj(DEM,'preprocess','carve');
+A = flowacc(FD);
+DEM = imposemin(FD,DEM,0.0001);
+S = STREAMobj(FD,'minarea',20000);
+S = klargestconncomps(S,1);
+S = klargestconncomps(S,1);
+imageschs(DEM);
+hold on
+plot(S,'k')
+hold off
+STATS = slopearea(S,DEM,A)
+g = gradient(S,DEM);
+a = getnal(S,A)*A.cellsize^2;
+ksn = g./(a.^STATS.theta);
+figure
+plotc(S,ksn)
+colormap(jet)
+caxis([0 100])
+h = colorbar;
+h.Label.String = 'KSN';
+box on
+axis image
